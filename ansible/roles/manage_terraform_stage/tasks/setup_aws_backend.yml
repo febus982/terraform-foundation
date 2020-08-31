@@ -1,0 +1,20 @@
+---
+- name: "{{ stage_operation }} terraform stage `{{ stage_name }}`: Retrieve AWS Bootstrap informations"
+  set_fact:
+    bootstrap_secret_info: "{{ lookup('aws_secret', 'pippo') | from_json }}"
+  ignore_errors: true
+  no_log: true
+
+- name: "{{ stage_operation }} terraform stage `{{ stage_name }}`: Setup terraform backend from bootstrap information"
+  set_fact:
+    terraform_backend_config:
+      encrypt: true
+      bucket: bootstrap_secret_info.bucket
+      region: bootstrap_secret_info.region
+      dynamodb_table: bootstrap_secret_info.lock_table
+      access_key: bootstrap_secret_info.access_key
+      secret_key: bootstrap_secret_info.secret_key
+      key: "{{ stage_name }}.tfstate"
+  when: bootstrap_secret_info is defined
+  no_log: true
+...

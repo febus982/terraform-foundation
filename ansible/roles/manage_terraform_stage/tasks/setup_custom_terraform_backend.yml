@@ -1,0 +1,5 @@
+---
+- name: "{{ stage_operation }} terraform stage `{{ stage_name }}`: Setup custom terraform backend"
+  set_fact:
+    terraform_backend_config: terraform_backend
+...

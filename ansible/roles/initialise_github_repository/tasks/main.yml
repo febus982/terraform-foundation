@@ -1,0 +1,48 @@
+- name: "Git config user name"
+  command: "git config --global user.name 'Terraform Foundation'"
+
+- name: "Git config user email"
+  command: "git config --global user.email 'nomail@noaddress.info'"
+
+- name: "Remove existing directory"
+  file:
+    path: "{{ playbook_dir }}/../git/{{ repository.name }}"
+    state: absent
+
+- name: "Clone github repository"
+  command: "git clone {{ repository.http_clone_url }} {{ playbook_dir }}/../git/{{ repository.name }}"
+
+- name: "Create new branch"
+  command: "git checkout -b bootstrap_update"
+  args:
+    chdir: "{{ playbook_dir }}/../git/{{ repository.name }}"
+
+- name: "Copy terraform files"
+  copy:
+    src: "{{ playbook_dir }}/../0-bootstrap/"
+    dest: "{{ playbook_dir }}/../git/{{ repository.name }}"
+
+- name: "Remove existing directory"
+  file:
+    path: "{{ playbook_dir }}/../git/{{ repository.name }}/.circleci"
+    state: directory
+
+- name: "Copy circleci configuration"
+  copy:
+    src: "files/circleci.yml"
+    dest: "{{ playbook_dir }}/../git/{{ repository.name }}/.circleci/config.yml"
+
+- name: "Add files"
+  command: "git add ."
+  args:
+    chdir: "{{ playbook_dir }}/../git/{{ repository.name }}"
+
+- name: "Commit files"
+  command: "git commit -m 'Bootstrap update' "
+  args:
+    chdir: "{{ playbook_dir }}/../git/{{ repository.name }}"
+
+- name: "Push files to origin repository"
+  command: "git push -f --set-upstream origin bootstrap_update"
+  args:
+    chdir: "{{ playbook_dir }}/../git/{{ repository.name }}"

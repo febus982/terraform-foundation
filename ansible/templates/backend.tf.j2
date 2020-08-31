@@ -1,0 +1,6 @@
+terraform {
+  backend "gcs" {
+    bucket = "{{ bootstrap_outputs.gcs_bucket_tfstate.value }}"
+    prefix = "terraform/0_bootstrap/state"
+  }
+}

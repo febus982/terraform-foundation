@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+
+  platform:
+    image: febus982/terraform-foundation:latest
+    build:
+      context: .
+    env_file:
+      - local.env
+    volumes:
+      - .:/platform
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  bootstrap:
+    image: febus982/terraform-foundation:latest
+    build:
+      context: .
+    env_file:
+      - local.env
+    volumes:
+      - .:/platform
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["pipenv", "run", "bootstrap"]
+
+  # https://cloud.google.com/sdk/install
+  gcloud:
+    image: google/cloud-sdk
+    volumes:
+      - .:/platform
+
