@@ -38,30 +38,30 @@ output "gcs_bucket_tfstate" {
     Specific to cloudbuild_module
    ---------------------------------------- */
 // Comment-out the cloudbuild_bootstrap module and its outputs if you want to use Jenkins instead of Cloud Build
-output "cloudbuild_project_id" {
-  description = "Project where CloudBuild configuration and terraform container image will reside."
-  value       = module.cloudbuild_bootstrap.cloudbuild_project_id
-}
-
-output "gcs_bucket_cloudbuild_artifacts" {
-  description = "Bucket used to store Cloud/Build artefacts in CloudBuild project."
-  value       = module.cloudbuild_bootstrap.gcs_bucket_cloudbuild_artifacts
-}
-
-output "csr_repos" {
-  description = "List of Cloud Source Repos created by the module, linked to Cloud Build triggers."
-  value       = module.cloudbuild_bootstrap.csr_repos
-}
-
-output "kms_keyring" {
-  description = "KMS Keyring created by the module."
-  value       = module.cloudbuild_bootstrap.kms_keyring
-}
-
-output "kms_crypto_key" {
-  description = "KMS key created by the module."
-  value       = module.cloudbuild_bootstrap.kms_crypto_key
-}
+//output "cloudbuild_project_id" {
+//  description = "Project where CloudBuild configuration and terraform container image will reside."
+//  value       = module.cloudbuild_bootstrap.cloudbuild_project_id
+//}
+//
+//output "gcs_bucket_cloudbuild_artifacts" {
+//  description = "Bucket used to store Cloud/Build artefacts in CloudBuild project."
+//  value       = module.cloudbuild_bootstrap.gcs_bucket_cloudbuild_artifacts
+//}
+//
+//output "csr_repos" {
+//  description = "List of Cloud Source Repos created by the module, linked to Cloud Build triggers."
+//  value       = module.cloudbuild_bootstrap.csr_repos
+//}
+//
+//output "kms_keyring" {
+//  description = "KMS Keyring created by the module."
+//  value       = module.cloudbuild_bootstrap.kms_keyring
+//}
+//
+//output "kms_crypto_key" {
+//  description = "KMS key created by the module."
+//  value       = module.cloudbuild_bootstrap.kms_crypto_key
+//}
 
 /* ----------------------------------------
     Specific to jenkins_bootstrap module
