@@ -13,10 +13,6 @@ resource "github_repository" "bootstrap_repository" {
   delete_branch_on_merge = true
   private = var.github_repos_private
   auto_init = true
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "circleci_project" "circleci_bootstrap_project" {
@@ -34,10 +30,6 @@ resource "circleci_project" "circleci_bootstrap_project" {
     GITHUB_ORGANIZATION_NAME=var.github_organization_name
     CIRCLECI_PERSONAL_TOKEN=var.github_personal_token
   }
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 ### Other repositories resources ###
@@ -49,10 +41,6 @@ resource "github_repository" "github_repositories" {
   delete_branch_on_merge = true
   private = var.github_repos_private
   auto_init = true
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "circleci_project" "circleci_projects" {
@@ -67,9 +55,5 @@ resource "circleci_project" "circleci_projects" {
     GOOGLE_DEFAULT_REGION=var.google_default_region
     GOOGLE_IAM_GROUP_ORG_ADMIN=var.google_iam_group_org_admin
     GOOGLE_IAM_GROUP_BILLING_ADMIN=var.google_iam_group_billing_admin
-  }
-
-  lifecycle {
-    prevent_destroy = true
   }
 }
