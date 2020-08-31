@@ -15,6 +15,24 @@ resource "github_repository" "bootstrap_repository" {
   auto_init = true
 }
 
+#TODO: Find a secure way to generate this key
+resource "tls_private_key" "bootstrap_tls_key" {
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P521"
+}
+
+resource "local_file" "git_private_key_pem" {
+  sensitive_content = tls_private_key.bootstrap_tls_key.private_key_pem
+  filename = "${path.cwd}/../git.pem"
+}
+
+resource "github_repository_deploy_key" "bootstrap_write_key" {
+  key = tls_private_key.bootstrap_tls_key.public_key_openssh
+  repository = github_repository.bootstrap_repository.name
+  title = "Bootstrap write deploy key"
+  read_only  = "false"
+}
+
 resource "circleci_project" "circleci_bootstrap_project" {
   depends_on = [github_repository.bootstrap_repository]
   name       = github_repository.bootstrap_repository.name
@@ -29,6 +47,7 @@ resource "circleci_project" "circleci_bootstrap_project" {
     GITHUB_PERSONAL_TOKEN=var.github_personal_token
     GITHUB_ORGANIZATION_NAME=var.github_organization_name
     CIRCLECI_PERSONAL_TOKEN=var.github_personal_token
+    GIT_PEM_B64_KEYFILE_CONTENT=base64encode(tls_private_key.bootstrap_tls_key.private_key_pem)
   }
 }
 

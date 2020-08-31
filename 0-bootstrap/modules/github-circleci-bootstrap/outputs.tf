@@ -9,3 +9,7 @@ output "github_repositories" {
     }
   )
 }
+
+output "git_pem_keyfile_path" {
+  value = local_file.git_private_key_pem.filename
+}

@@ -52,3 +52,7 @@ module "github_circleci_bootstrap" {
 output "github_repositories" {
   value = module.github_circleci_bootstrap.github_repositories
 }
+
+output "git_pem_keyfile_path" {
+  value = module.github_circleci_bootstrap.git_pem_keyfile_path
+}
