@@ -39,15 +39,15 @@ resource "circleci_project" "circleci_bootstrap_project" {
 
   env_vars = {
     GOOGLE_CREDENTIALS=base64decode(google_service_account_key.terraform_sa_key.private_key)
-    GOOGLE_ORGANIZATION_ID=data.google_project.seed_project.org_id
-    GOOGLE_BILLING_ACCOUNT_ID=data.google_project.seed_project.billing_account
-    GOOGLE_DEFAULT_REGION=var.google_default_region
-    GOOGLE_IAM_GROUP_ORG_ADMIN=var.google_iam_group_org_admin
-    GOOGLE_IAM_GROUP_BILLING_ADMIN=var.google_iam_group_billing_admin
-    GITHUB_PERSONAL_TOKEN=var.github_personal_token
-    GITHUB_ORGANIZATION_NAME=var.github_organization_name
-    CIRCLECI_PERSONAL_TOKEN=var.github_personal_token
     GIT_PEM_B64_KEYFILE_CONTENT=base64encode(tls_private_key.bootstrap_tls_key.private_key_pem)
+    TF_VAR_org_id=data.google_project.seed_project.org_id
+    TF_VAR_billing_account=data.google_project.seed_project.billing_account
+    TF_VAR_group_org_admins=var.google_iam_group_org_admin
+    TF_VAR_group_billing_admins=var.google_iam_group_billing_admin
+    TF_VAR_default_region=var.google_default_region
+    TF_VAR_github_personal_token=var.github_personal_token
+    TF_VAR_github_organization_name=var.github_organization_name
+    TF_VAR_circleci_personal_token=var.github_personal_token
   }
 }
 
@@ -69,10 +69,10 @@ resource "circleci_project" "circleci_projects" {
 
   env_vars = {
     GOOGLE_CREDENTIALS=base64decode(google_service_account_key.terraform_sa_key.private_key)
-    GOOGLE_ORGANIZATION_ID=data.google_project.seed_project.org_id
-    GOOGLE_BILLING_ACCOUNT_ID=data.google_project.seed_project.billing_account
-    GOOGLE_DEFAULT_REGION=var.google_default_region
-    GOOGLE_IAM_GROUP_ORG_ADMIN=var.google_iam_group_org_admin
-    GOOGLE_IAM_GROUP_BILLING_ADMIN=var.google_iam_group_billing_admin
+    TF_VAR_org_id=data.google_project.seed_project.org_id
+    TF_VAR_billing_account=data.google_project.seed_project.billing_account
+    TF_VAR_default_region=var.google_default_region
+    TF_VAR_group_org_admins=var.google_iam_group_org_admin
+    TF_VAR_group_billing_admins=var.google_iam_group_billing_admin
   }
 }
