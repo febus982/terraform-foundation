@@ -29,13 +29,13 @@ data "google_organization" "organisation" {
 module "github_circleci_bootstrap" {
   source = "./modules/github-circleci-bootstrap"
 
-  github_bootstrap_repo = "${data.google_organization.organisation.domain}-gcp-bootstrap"
+  github_bootstrap_repo = "${data.google_organization.organisation.domain}-0-bootstrap"
 
   github_repos = [
-    "${data.google_organization.organisation.domain}-gcp-org",
-    "${data.google_organization.organisation.domain}-gcp-environments",
-    "${data.google_organization.organisation.domain}-gcp-networks",
-    "${data.google_organization.organisation.domain}-gcp-projects",
+    "${data.google_organization.organisation.domain}-1-org",
+    "${data.google_organization.organisation.domain}-2-environments",
+    "${data.google_organization.organisation.domain}-3-networks",
+    "${data.google_organization.organisation.domain}-4-projects",
   ]
 
   terraform_sa_name = module.seed_bootstrap.terraform_sa_name
@@ -55,4 +55,8 @@ output "github_repositories" {
 
 output "git_pem_keyfile_path" {
   value = module.github_circleci_bootstrap.git_pem_keyfile_path
+}
+
+output "gcp_organisation_domain" {
+  value = data.google_organization.organisation.domain
 }
