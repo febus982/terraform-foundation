@@ -20,8 +20,13 @@ variable "terraform_sa_name" {
   type        = string
 }
 
-variable "seed_project_id" {
-  description = "Project where terraform service accounts is enabled."
+variable "org_id" {
+  description = "GCP Organization ID"
+  type        = string
+}
+
+variable "billing_account" {
+  description = "The ID of the billing account to associate projects with."
   type        = string
 }
 

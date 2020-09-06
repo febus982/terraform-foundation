@@ -39,7 +39,6 @@ module "github_circleci_bootstrap" {
   ]
 
   terraform_sa_name = module.seed_bootstrap.terraform_sa_name
-  seed_project_id = module.seed_bootstrap.seed_project_id
 
   google_default_region = var.default_region
   google_iam_group_billing_admin = var.group_billing_admins
@@ -47,6 +46,8 @@ module "github_circleci_bootstrap" {
   circleci_personal_token = var.circleci_personal_token
   github_organization_name = var.github_organization_name
   github_personal_token = var.github_personal_token
+  billing_account = var.billing_account
+  org_id = var.org_id
 }
 
 output "github_repositories" {
