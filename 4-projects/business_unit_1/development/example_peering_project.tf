@@ -14,14 +14,73 @@
  * limitations under the License.
  */
 
+data "google_projects" "projects" {
+  filter = "parent.id:${split("/", data.google_active_folder.env.name)[1]} labels.application_name=base-shared-vpc-host labels.environment=development lifecycleState=ACTIVE"
+}
+
+data "google_compute_network" "shared_vpc" {
+  name    = "vpc-d-shared-base"
+  project = data.google_projects.projects.projects[0].project_id
+}
+
+data "google_netblock_ip_ranges" "legacy_health_checkers" {
+  range_type = "legacy-health-checkers"
+}
+
+data "google_netblock_ip_ranges" "health_checkers" {
+  range_type = "health-checkers"
+}
+
+data "google_netblock_ip_ranges" "iap_forwarders" {
+  range_type = "iap-forwarders"
+}
+
+module "peering_project" {
+  source                      = "../../modules/single_project"
+  impersonate_service_account = var.terraform_service_account
+  org_id                      = var.org_id
+  billing_account             = var.billing_account
+  folder_id                   = data.google_active_folder.env.name
+  skip_gcloud_download        = var.skip_gcloud_download
+  environment                 = "development"
+
+  # Metadata
+  project_prefix    = "sample-peering"
+  application_name  = "bu1-sample-peering"
+  billing_code      = "1234"
+  primary_contact   = "example@example.com"
+  secondary_contact = "example2@example.com"
+  business_code     = "bu1"
+}
+
+module "peering_network" {
+  source                                 = "terraform-google-modules/network/google"
+  version                                = "~> 2.0"
+  project_id                             = module.peering_project.project_id
+  network_name                           = "vpc-d-peering-base"
+  shared_vpc_host                        = "false"
+  delete_default_internet_gateway_routes = "true"
+  subnets                                = []
+}
+
+module "peering" {
+  source = "terraform-google-modules/network/google//modules/network-peering"
+
+  prefix        = "bu1-d"
+  local_network = module.peering_network.network_self_link
+  peer_network  = data.google_compute_network.shared_vpc.self_link
+
+  module_depends_on = var.peering_module_depends_on
+}
+
 /******************************************
   Mandatory firewall rules
  *****************************************/
 
 resource "google_compute_firewall" "deny_all_egress" {
-  name      = "fw-${var.environment_code}-shared-base-65535-e-d-all-all-all"
-  network   = module.main.network_name
-  project   = var.project_id
+  name      = "fw-d-peering-base-65535-e-d-all-all-tcp-udp"
+  network   = module.peering_network.network_name
+  project   = module.peering_project.project_id
   direction = "EGRESS"
   priority  = 65535
 
@@ -36,7 +95,11 @@ resource "google_compute_firewall" "deny_all_egress" {
   }
 
   deny {
-    protocol = "all"
+    protocol = "tcp"
+  }
+
+  deny {
+    protocol = "udp"
   }
 
   destination_ranges = ["0.0.0.0/0"]
@@ -44,9 +107,9 @@ resource "google_compute_firewall" "deny_all_egress" {
 
 
 resource "google_compute_firewall" "allow_private_api_egress" {
-  name      = "fw-${var.environment_code}-shared-base-65534-e-a-allow-google-apis-all-tcp-443"
-  network   = module.main.network_name
-  project   = var.project_id
+  name      = "fw-d-peering-base-65534-e-a-allow-google-apis-all-tcp-443"
+  network   = module.peering_network.network_name
+  project   = module.peering_project.project_id
   direction = "EGRESS"
   priority  = 65534
 
@@ -65,7 +128,7 @@ resource "google_compute_firewall" "allow_private_api_egress" {
     ports    = ["443"]
   }
 
-  destination_ranges = [local.private_googleapis_cidr]
+  destination_ranges = ["199.36.153.8/30"]
 
   target_tags = ["allow-google-apis"]
 }
@@ -78,9 +141,9 @@ resource "google_compute_firewall" "allow_private_api_egress" {
 // Allow SSH via IAP when using the allow-iap-ssh tag for Linux workloads.
 resource "google_compute_firewall" "allow_iap_ssh" {
   count   = var.optional_fw_rules_enabled ? 1 : 0
-  name    = "fw-${var.environment_code}-shared-base-1000-i-a-all-allow-iap-ssh-tcp-22"
-  network = module.main.network_name
-  project = var.project_id
+  name    = "fw-d-peering-base-1000-i-a-all-allow-iap-ssh-tcp-22"
+  network = module.peering_network.network_name
+  project = module.peering_project.project_id
 
   dynamic "log_config" {
     for_each = var.firewall_enable_logging == true ? [{
@@ -106,9 +169,9 @@ resource "google_compute_firewall" "allow_iap_ssh" {
 // Allow RDP via IAP when using the allow-iap-rdp tag for Windows workloads.
 resource "google_compute_firewall" "allow_iap_rdp" {
   count   = var.optional_fw_rules_enabled ? 1 : 0
-  name    = "fw-${var.environment_code}-shared-base-1000-i-a-all-allow-iap-rdp-tcp-3389"
-  network = module.main.network_name
-  project = var.project_id
+  name    = "fw-d-peering-base-1000-i-a-all-allow-iap-rdp-tcp-3389"
+  network = module.peering_network.network_name
+  project = module.peering_project.project_id
 
   dynamic "log_config" {
     for_each = var.firewall_enable_logging == true ? [{
@@ -134,9 +197,9 @@ resource "google_compute_firewall" "allow_iap_rdp" {
 // Allow access to kms.windows.googlecloud.com for Windows license activation
 resource "google_compute_firewall" "allow_windows_activation" {
   count     = var.windows_activation_enabled ? 1 : 0
-  name      = "fw-${var.environment_code}-shared-base-0-e-a-allow-win-activation-all-tcp-1688"
-  network   = module.main.network_name
-  project   = var.project_id
+  name      = "fw-d-peering-base-0-e-a-allow-win-activation-all-tcp-1688"
+  network   = module.peering_network.network_name
+  project   = module.peering_project.project_id
   direction = "EGRESS"
   priority  = 0
 
@@ -163,9 +226,9 @@ resource "google_compute_firewall" "allow_windows_activation" {
 // Allow traffic for Internal & Global load balancing health check and load balancing IP ranges.
 resource "google_compute_firewall" "allow_lb" {
   count   = var.optional_fw_rules_enabled ? 1 : 0
-  name    = "fw-${var.environment_code}-shared-base-1000-i-a-all-allow-lb-tcp-80-8080-443"
-  network = module.main.network_name
-  project = var.project_id
+  name    = "fw-d-peering-base-1000-i-a-all-allow-lb-tcp-80-8080-443"
+  network = module.peering_network.network_name
+  project = module.peering_project.project_id
 
   dynamic "log_config" {
     for_each = var.firewall_enable_logging == true ? [{

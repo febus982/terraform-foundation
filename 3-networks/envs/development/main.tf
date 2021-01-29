@@ -19,7 +19,7 @@ locals {
   env                       = "development"
   restricted_project_id     = data.google_projects.restricted_host_project.projects[0].project_id
   restricted_project_number = data.google_project.restricted_host_project.number
-  base_project_id           = data.google_projects.base_project.projects[0].project_id
+  base_project_id           = data.google_projects.base_host_project.projects[0].project_id
   parent_id                 = var.parent_folder != "" ? "folders/${var.parent_folder}" : "organizations/${var.org_id}"
 }
 
@@ -40,7 +40,7 @@ data "google_project" "restricted_host_project" {
   project_id = data.google_projects.restricted_host_project.projects[0].project_id
 }
 
-data "google_projects" "base_project" {
+data "google_projects" "base_host_project" {
   filter = "parent.id:${split("/", data.google_active_folder.env.name)[1]} labels.application_name=base-shared-vpc-host labels.environment=${local.env} lifecycleState=ACTIVE"
 }
 
@@ -58,11 +58,19 @@ module "restricted_shared_vpc" {
   private_service_cidr             = "10.0.176.0/20"
   org_id                           = var.org_id
   parent_folder                    = var.parent_folder
-  nat_enabled                      = false
   bgp_asn_subnet                   = "64514"
   default_region1                  = var.default_region1
   default_region2                  = var.default_region2
   domain                           = var.domain
+  windows_activation_enabled       = var.windows_activation_enabled
+  dns_enable_inbound_forwarding    = var.dns_enable_inbound_forwarding
+  dns_enable_logging               = var.dns_enable_logging
+  firewall_enable_logging          = var.firewall_enable_logging
+  optional_fw_rules_enabled        = var.optional_fw_rules_enabled
+  nat_enabled                      = var.nat_enabled
+  nat_bgp_asn                      = var.nat_bgp_asn
+  nat_num_addresses_region1        = var.nat_num_addresses_region1
+  nat_num_addresses_region2        = var.nat_num_addresses_region2
 
   subnets = [
     {
@@ -101,19 +109,27 @@ module "restricted_shared_vpc" {
 *****************************************/
 
 module "base_shared_vpc" {
-  source                     = "../../modules/base_shared_vpc"
-  project_id                 = local.base_project_id
-  environment_code           = local.environment_code
-  private_service_cidr       = "10.0.144.0/20"
-  org_id                     = var.org_id
-  parent_folder              = var.parent_folder
-  nat_enabled                = false
-  nat_bgp_asn                = "64514"
-  default_region1            = var.default_region1
-  default_region2            = var.default_region2
-  domain                     = var.domain
-  bgp_asn_subnet             = "64514"
-  windows_activation_enabled = false
+  source                        = "../../modules/base_shared_vpc"
+  project_id                    = local.base_project_id
+  environment_code              = local.environment_code
+  private_service_cidr          = "10.0.144.0/20"
+  org_id                        = var.org_id
+  parent_folder                 = var.parent_folder
+  default_region1               = var.default_region1
+  default_region2               = var.default_region2
+  domain                        = var.domain
+  bgp_asn_subnet                = "64514"
+  windows_activation_enabled    = var.windows_activation_enabled
+  dns_enable_inbound_forwarding = var.dns_enable_inbound_forwarding
+  dns_enable_logging            = var.dns_enable_logging
+  firewall_enable_logging       = var.firewall_enable_logging
+  optional_fw_rules_enabled     = var.optional_fw_rules_enabled
+  nat_enabled                   = var.nat_enabled
+  nat_bgp_asn                   = var.nat_bgp_asn
+  nat_num_addresses_region1     = var.nat_num_addresses_region1
+  nat_num_addresses_region2     = var.nat_num_addresses_region2
+  nat_num_addresses             = var.nat_num_addresses
+
   subnets = [
     {
       subnet_name           = "sb-${local.environment_code}-shared-base-${var.default_region1}"
@@ -133,9 +149,10 @@ module "base_shared_vpc" {
     }
   ]
   secondary_ranges = {
-    "sb-${local.environment_code}-shared-base-${var.default_region1}" = [{
-      range_name    = "rn-${local.environment_code}-shared-base-${var.default_region1}-gke-pod"
-      ip_cidr_range = "192.168.96.0/19"
+    "sb-${local.environment_code}-shared-base-${var.default_region1}" = [
+      {
+        range_name    = "rn-${local.environment_code}-shared-base-${var.default_region1}-gke-pod"
+        ip_cidr_range = "192.168.96.0/19"
       },
       {
         range_name    = "rn-${local.environment_code}-shared-base-${var.default_region1}-gke-svc"

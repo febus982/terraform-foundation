@@ -12,7 +12,19 @@ The purpose of this step is to bootstrap a GCP organization, creating all the re
 
 Further details of permissions required and resources created, can be found in the bootstrap module [documentation.](https://github.com/terraform-google-modules/terraform-google-bootstrap)
 
-**Note:** when running the examples in this repository, you may receive an error like `Error code 8, message: The project cannot be created because you have exceeded your allotted project quota.` when applying terraform. That means you have reached your [Project creation quota](https://support.google.com/cloud/answer/6330231). In this case you can use this [Request Project Quota Increase](https://support.google.com/code/contact/project_quota_increase) form to request a quota increase. The `terraform_sa_email` created in `0-bootstrap` should also be listed in "Email addresses that will be used to create projects" in that support form. If you face others quota errors, check the [Quota documentation](https://cloud.google.com/docs/quota) for guidence.
+**Note:** when running the examples in this repository, you may receive various errors when applying terraform:
+- `Error code 8, message: The project cannot be created because you have exceeded your allotted project quota.`. That means you have reached your [Project creation quota](https://support.google.com/cloud/answer/6330231). In this case you can use this [Request Project Quota Increase](https://support.google.com/code/contact/project_quota_increase) form to request a quota increase. The `terraform_sa_email` created in `0-bootstrap` should also be listed in "Email addresses that will be used to create projects" in that support form. If you face others quota errors, check the [Quota documentation](https://cloud.google.com/docs/quota) for guidence.
+- `Error: Error when reading or editing Organization Not Found : <organization-id>: googleapi: Error 403: The caller does not have permission, forbidden`.
+    - Check that your user have [Organization Admin](https://cloud.google.com/iam/docs/understanding-roles#resource-manager-roles) predefined role at the Organization level.
+    -  If this is the case, try the following:
+        ```
+        gcloud auth application-default login
+        gcloud auth list # <- confirm that correct account has a star next to it
+        ```
+    - Re-run `terraform` after.
+- `Error: Error setting billing account "XXXXXX-XXXXXX-XXXXXX" for project "projects/some-project": googleapi: Error 400: Precondition check failed., failedPrecondition`. Most likely this is related to billing quota issue.
+    - To confirm this, try `gcloud alpha billing projects link projects/some-project --billing-account XXXXXX-XXXXXX-XXXXXX`.
+    - If output states `Cloud billing quota exceeded`, please request increase via [https://support.google.com/code/contact/billing_quota_increase](https://support.google.com/code/contact/billing_quota_increase).
 
 ## 0-bootstrap usage to deploy Jenkins
 
@@ -41,15 +53,16 @@ Currently, the bucket information is replaced in the state backends as a part of
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|:----:|:-----:|:-----:|
-| billing\_account | The ID of the billing account to associate projects with. | string | n/a | yes |
-| default\_region | Default region to create resources where applicable. | string | `"us-central1"` | no |
-| group\_billing\_admins | Google Group for GCP Billing Administrators | string | n/a | yes |
-| group\_org\_admins | Google Group for GCP Organization Administrators | string | n/a | yes |
-| org\_id | GCP Organization ID | string | n/a | yes |
-| org\_project\_creators | Additional list of members to have project creator role across the organization. Prefix of group: user: or serviceAccount: is required. | list(string) | `<list>` | no |
-| parent\_folder | Optional - if using a folder for testing. | string | `""` | no |
-| skip\_gcloud\_download | Whether to skip downloading gcloud (assumes gcloud is already available outside the module) | bool | `"true"` | no |
+|------|-------------|------|---------|:--------:|
+| billing\_account | The ID of the billing account to associate projects with. | `string` | n/a | yes |
+| default\_region | Default region to create resources where applicable. | `string` | `"us-central1"` | no |
+| group\_billing\_admins | Google Group for GCP Billing Administrators | `string` | n/a | yes |
+| group\_org\_admins | Google Group for GCP Organization Administrators | `string` | n/a | yes |
+| org\_id | GCP Organization ID | `string` | n/a | yes |
+| org\_policy\_admin\_role | Additional Org Policy Admin role for admin group. You can use this for testing purposes. | `bool` | `false` | no |
+| org\_project\_creators | Additional list of members to have project creator role across the organization. Prefix of group: user: or serviceAccount: is required. | `list(string)` | `[]` | no |
+| parent\_folder | Optional - if using a folder for testing. | `string` | `""` | no |
+| skip\_gcloud\_download | Whether to skip downloading gcloud (assumes gcloud is already available outside the module) | `bool` | `true` | no |
 
 ## Outputs
 
