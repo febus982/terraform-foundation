@@ -30,6 +30,10 @@ default_region = "europe-west2"
 
 scc_notification_name = "scc-notify"
 
+# Cost limitation
+data_access_logs_enabled = false
+
+
 //Optional - for development.  Will place all resources under a specific folder instead of org root
 //parent_folder = "01234567890"
 //scc_notification_filter = "state=\\\"ACTIVE\\\""
