@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-provider "google" {
-  version = "~> 3.38"
-}
+provider "google" {}
 
-provider "google-beta" {
-  version = "~> 3.30"
-}
+provider "google-beta" {}
 
-provider "null" {
-  version = "~> 2.1"
-}
+provider "null" {}
 
-provider "random" {
-  version = "~> 2.2"
-}
+provider "random" {}
 
 /*************************************************
   Bootstrap GCP Organization.
@@ -110,59 +102,63 @@ resource "google_billing_account_iam_member" "tf_billing_admin" {
 }
 
 // Comment-out the cloudbuild_bootstrap module and its outputs if you want to use Jenkins instead of Cloud Build
-//module "cloudbuild_bootstrap" {
-//  source                    = "git::https://github.com/febus982/terraform-google-bootstrap//modules/cloudbuild?ref=release-2.1.0-github"
-//  org_id                    = var.org_id
-//  folder_id                 = google_folder.bootstrap.id
-//  billing_account           = var.billing_account
-//  group_org_admins          = var.group_org_admins
-//  default_region            = var.default_region
-//  terraform_sa_email        = module.seed_bootstrap.terraform_sa_email
-//  terraform_sa_name         = module.seed_bootstrap.terraform_sa_name
-//  terraform_state_bucket    = module.seed_bootstrap.gcs_bucket_tfstate
-//  sa_enable_impersonation   = true
-//  skip_gcloud_download      = var.skip_gcloud_download
-//  cloudbuild_plan_filename  = "cloudbuild-tf-plan.yaml"
-//  cloudbuild_apply_filename = "cloudbuild-tf-apply.yaml"
-//
-//  activate_apis = [
-//    "serviceusage.googleapis.com",
-//    "servicenetworking.googleapis.com",
-//    "compute.googleapis.com",
-//    "logging.googleapis.com",
-//    "bigquery.googleapis.com",
-//    "cloudresourcemanager.googleapis.com",
-//    "cloudbilling.googleapis.com",
-//    "iam.googleapis.com",
-//    "admin.googleapis.com",
-//    "appengine.googleapis.com",
-//    "storage-api.googleapis.com",
-//    "billingbudgets.googleapis.com"
-//  ]
-//
-//  project_labels = {
-//    environment       = "bootstrap"
-//    application_name  = "cloudbuild-bootstrap"
-//    billing_code      = "1234"
-//    primary_contact   = "example1"
-//    secondary_contact = "example2"
-//    business_code     = "abcd"
-//    env_code          = "b"
-//  }
-//
-//  cloud_source_repos = [
-//    "gcp-org",
-////    "gcp-environments",
-////    "gcp-networks",
-////    "gcp-projects"
-//  ]
-//
-//  terraform_apply_branches = [
-//    "development",
-//    "non\\-production", //non-production needs a \ to ensure regex matches correct branches.
-//    "production"
-//  ]
-//}
+module "cloudbuild_bootstrap" {
+  source                    = "git::https://github.com/febus982/terraform-google-bootstrap//modules/cloudbuild?ref=release-2.1.0-github"
+  org_id                    = var.org_id
+  folder_id                 = google_folder.bootstrap.id
+  billing_account           = var.billing_account
+  group_org_admins          = var.group_org_admins
+  default_region            = var.default_region
+  terraform_sa_email        = module.seed_bootstrap.terraform_sa_email
+  terraform_sa_name         = module.seed_bootstrap.terraform_sa_name
+  terraform_state_bucket    = module.seed_bootstrap.gcs_bucket_tfstate
+  sa_enable_impersonation   = true
+  cloudbuild_plan_filename  = "cloudbuild-tf-plan.yaml"
+  cloudbuild_apply_filename = "cloudbuild-tf-apply.yaml"
+
+  activate_apis = [
+    "serviceusage.googleapis.com",
+    "servicenetworking.googleapis.com",
+    "compute.googleapis.com",
+    "logging.googleapis.com",
+    "bigquery.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "iam.googleapis.com",
+    "admin.googleapis.com",
+    "appengine.googleapis.com",
+    "storage-api.googleapis.com",
+    "billingbudgets.googleapis.com"
+  ]
+
+  project_labels = {
+    environment       = "bootstrap"
+    application_name  = "cloudbuild-bootstrap"
+    billing_code      = "1234"
+    primary_contact   = "example1"
+    secondary_contact = "example2"
+    business_code     = "abcd"
+    env_code          = "b"
+  }
+
+  create_cloud_source_repos    = false
+  create_github_repos          = true
+  create_github_repos_triggers = true
+  github_owner                 = var.github_organisation != "" ? var.github_organisation : var.github_owner
+
+  cloud_source_repos = [
+    "gcp-org",
+    "gcp-environments",
+    "gcp-networks",
+    "gcp-projects",
+  ]
+
+  terraform_apply_branches = [
+    "development",
+    "non\\-production", //non-production needs a \ to ensure regex matches correct branches.
+    "production"
+  ]
+}
 
 ## Un-comment the jenkins_bootstrap module and its outputs if you want to use Jenkins instead of Cloud Build
 # module "jenkins_bootstrap" {

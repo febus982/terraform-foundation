@@ -6,9 +6,15 @@ ENV TERRAFORM_CIRCLECI_PLUGIN_VERSION=0.1.0
 #ENV ISTIO_VERSION=1.6.7
 #ENV HELM_VERSION=3.2.4
 
-ARG TERRAFORM_VERSION=0.12.29
-ARG TERRAFORM_VERSION_SHA256SUM=872245d9c6302b24dc0d98a1e010aef1e4ef60865a2d1f60102c8ad03e9d5a1d
+#ARG TERRAFORM_VERSION=0.13.6
+#ARG TERRAFORM_VERSION_SHA256SUM=55f2db00b05675026be9c898bdd3e8230ff0c5c78dd12d743ca38032092abfc9
 ARG TERRAFORM_VALIDATOR_RELEASE=2020-03-05
+
+ARG TERRAFORM_VERSION=0.14.5
+ARG TERRAFORM_VERSION_SHA256SUM=2899f47860b7752e31872e4d57b1c03c99de154f12f0fc84965e231bc50f312f
+
+#ARG TERRAFORM_VERSION=0.12.29
+#ARG TERRAFORM_VERSION_SHA256SUM=872245d9c6302b24dc0d98a1e010aef1e4ef60865a2d1f60102c8ad03e9d5a1d
 
 ENV ENV_TERRAFORM_VERSION=$TERRAFORM_VERSION
 ENV ENV_TERRAFORM_VERSION_SHA256SUM=$TERRAFORM_VERSION_SHA256SUM
@@ -48,13 +54,6 @@ RUN curl -LO https://releases.hashicorp.com/terraform/${ENV_TERRAFORM_VERSION}/t
     && unzip terraform_${ENV_TERRAFORM_VERSION}_linux_amd64.zip \
     && mv terraform /usr/local/bin/ \
     && rm terraform_${ENV_TERRAFORM_VERSION}_linux_amd64.zip
-
-# terraform circleci plugin (~14MB)
-RUN curl -LO https://github.com/TomTucka/terraform-provider-circleci/releases/download/v${TERRAFORM_CIRCLECI_PLUGIN_VERSION}/terraform-provider-circleci_${TERRAFORM_CIRCLECI_PLUGIN_VERSION}_linux_amd64.zip \
-    && mkdir -p $HOME/.terraform.d/plugins/linux_amd64 \
-    && unzip terraform-provider-circleci_${TERRAFORM_CIRCLECI_PLUGIN_VERSION}_linux_amd64.zip \
-    && mv terraform-provider-circleci_v${TERRAFORM_CIRCLECI_PLUGIN_VERSION} $HOME/.terraform.d/plugins/linux_amd64/ \
-    && rm terraform-provider-circleci_${TERRAFORM_CIRCLECI_PLUGIN_VERSION}_linux_amd64.zip
 
 # istio sources (~220MB)
 #RUN curl -L https://istio.io/downloadIstio | sh - \
