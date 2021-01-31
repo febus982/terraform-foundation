@@ -1,8 +1,0 @@
----
-repository_terraform_map:
-  gcp-bootstrap: 0-bootstrap
-  gcp-org: 1-org
-  gcp-environments: 2-environments
-  gcp-networks: 3-networks
-  gcp-projects: 4-projects
-...

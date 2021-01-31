@@ -1,3 +1,0 @@
----
-stage_operation: "{{'Deploy' if state == 'present' else 'Destroy' if state == 'absent' else 'Unknown operation'}}"
-...
